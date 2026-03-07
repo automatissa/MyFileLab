@@ -1,0 +1,6 @@
+PySide6
+pypdf
+pdf2docx
+cryptography
+markdown
+PyMuPDF
