@@ -4,7 +4,7 @@ import markdown
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QFileDialog, QMessageBox, QLineEdit
+    QMessageBox, QLineEdit
 )
 
 from .base_feature import BaseFeature
@@ -47,9 +47,7 @@ class MdToPdfFeature(BaseFeature):
         layout.addWidget(btn_run)
 
     def _select_file(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Select a Markdown file", "", "Markdown (*.md *.markdown)"
-        )
+        path = self.open_file_dialog("Select a Markdown file", "Markdown (*.md *.markdown)")
         if path:
             self._file_input.setText(path)
 
@@ -59,12 +57,7 @@ class MdToPdfFeature(BaseFeature):
             QMessageBox.warning(self, "Warning", "Please select a Markdown file.")
             return
 
-        dest, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save PDF",
-            os.path.splitext(src)[0] + ".pdf",
-            "PDF (*.pdf)",
-        )
+        dest = self.save_dialog("Save PDF", os.path.splitext(src)[0] + ".pdf", "PDF (*.pdf)")
         if not dest:
             return
 

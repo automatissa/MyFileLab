@@ -3,7 +3,7 @@ from pypdf import PdfReader, PdfWriter
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QFileDialog, QMessageBox, QScrollArea, QFrame, QLineEdit,
+    QMessageBox, QScrollArea, QFrame, QLineEdit,
     QSizePolicy
 )
 from PySide6.QtCore import Qt
@@ -204,7 +204,7 @@ class MergeFeature(BaseFeature):
     # ── Handlers ───────────────────────────────────────────────────────────────
 
     def _add_files(self):
-        paths, _ = QFileDialog.getOpenFileNames(self, "Select PDF Files", "", "PDF (*.pdf)")
+        paths = self.open_files_dialog("Select PDF Files", "PDF (*.pdf)")
         for path in paths:
             self._drop_zone.add_file(path)
 
@@ -227,9 +227,7 @@ class MergeFeature(BaseFeature):
             QMessageBox.warning(self, "Warning", "The file list is empty.")
             return
 
-        out, _ = QFileDialog.getSaveFileName(
-            self, "Save As", "Merged_Result.pdf", "PDF (*.pdf)"
-        )
+        out = self.save_dialog("Save As", "Merged_Result.pdf", "PDF (*.pdf)")
         if not out:
             return
 

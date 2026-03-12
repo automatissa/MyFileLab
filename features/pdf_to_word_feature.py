@@ -3,7 +3,7 @@ from pdf2docx import Converter
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QFileDialog, QMessageBox, QLineEdit
+    QMessageBox, QLineEdit
 )
 
 
@@ -50,7 +50,7 @@ class PdfToWordFeature(BaseFeature):
     # ── Handlers ───────────────────────────────────────────────────────────────
 
     def _select_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Select a PDF", "", "PDF (*.pdf)")
+        path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
         if path:
             self._file_input.setText(path)
 
@@ -60,12 +60,7 @@ class PdfToWordFeature(BaseFeature):
             QMessageBox.warning(self, "Warning", "Please select a PDF file.")
             return
 
-        dest, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Word Document",
-            src.replace(".pdf", ".docx"),
-            "Word (*.docx)",
-        )
+        dest = self.save_dialog("Save Word Document", src.replace(".pdf", ".docx"), "Word (*.docx)")
         if not dest:
             return
 

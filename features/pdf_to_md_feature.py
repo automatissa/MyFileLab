@@ -3,7 +3,7 @@ import fitz  # PyMuPDF
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QFileDialog, QMessageBox, QLineEdit
+    QMessageBox, QLineEdit
 )
 
 from .base_feature import BaseFeature
@@ -46,7 +46,7 @@ class PdfToMdFeature(BaseFeature):
         layout.addWidget(btn_run)
 
     def _select_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Select a PDF", "", "PDF (*.pdf)")
+        path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
         if path:
             self._file_input.setText(path)
 
@@ -56,12 +56,7 @@ class PdfToMdFeature(BaseFeature):
             QMessageBox.warning(self, "Warning", "Please select a PDF file.")
             return
 
-        dest, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Markdown",
-            src.replace(".pdf", ".md"),
-            "Markdown (*.md)",
-        )
+        dest = self.save_dialog("Save Markdown", src.replace(".pdf", ".md"), "Markdown (*.md)")
         if not dest:
             return
 

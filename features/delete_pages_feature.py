@@ -3,7 +3,7 @@ from pypdf import PdfReader, PdfWriter
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QFileDialog, QMessageBox, QLineEdit
+    QMessageBox, QLineEdit
 )
 
 from .base_feature import BaseFeature
@@ -55,7 +55,7 @@ class DeletePagesFeature(BaseFeature):
     # ── Handlers ───────────────────────────────────────────────────────────────
 
     def _select_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Select a PDF", "", "PDF (*.pdf)")
+        path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
         if path:
             self._file_input.setText(path)
 
@@ -86,7 +86,7 @@ class DeletePagesFeature(BaseFeature):
             QMessageBox.critical(self, "Error", "Invalid page format. Use numbers and ranges like: 1, 3, 5-10")
             return
 
-        out, _ = QFileDialog.getSaveFileName(self, "Save As", "Modified_PDF.pdf", "PDF (*.pdf)")
+        out = self.save_dialog("Save As", "Modified_PDF.pdf", "PDF (*.pdf)")
         if not out:
             return
 

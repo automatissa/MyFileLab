@@ -1,58 +1,78 @@
-# AutoPDF Pro
+# FckSaaS
 
-A fast, offline desktop app for PDF processing. No cloud, no subscriptions — everything runs locally.
+> Stop paying. Start owning.
+
+A free, offline, open-source desktop app that replaces paid SaaS tools for PDF processing and video downloading. No cloud. No subscriptions. No file size limits. Everything runs on your machine.
 
 Built with Python and PySide6.
 
 ---
 
-## Features
+## Why FckSaaS?
 
-| Feature | Description |
+| SaaS tools charge you for | FckSaaS gives you for free |
 |---|---|
-| **Merge PDFs** | Combine multiple PDFs into one. Drag & drop files into the list, reorder with ↑ ↓ buttons, and set optional page ranges per file (e.g. `1-3, 5`) |
-| **Delete Pages** | Remove specific pages or ranges (e.g. `1, 3, 5-10`) from any PDF and save a new copy |
-| **PDF to Word** | Convert PDF files into editable `.docx` documents |
-| **MD to PDF** | Convert Markdown files (`.md`, `.markdown`) into formatted, styled PDF documents with support for tables, fenced code blocks, and headings |
-| **PDF to MD** | Extract text from a PDF page-by-page and save it as a `.md` Markdown file |
+| Merging PDFs | ✅ |
+| Compressing PDFs | ✅ |
+| Splitting PDFs | ✅ |
+| PDF → Word | ✅ |
+| Downloading videos from 10 platforms | ✅ |
+| Extracting MP3 from any video URL | ✅ |
+| Privacy (your files never leave your machine) | ✅ |
 
 ---
 
-## UI & UX
+## Features
 
-- Dark theme with a sidebar navigation and stacked content panels
-- Animated loading dialog (braille spinner + progress bar) shown during every conversion
-- All processing runs in a background thread — the UI stays responsive
-- Drag & drop support for adding PDF files in the Merge view
+### PDF Tools
+
+| Feature | Description |
+|---|---|
+| **Merge PDFs** | Combine multiple PDFs. Drag & drop, reorder, set per-file page ranges (e.g. `1-3, 5`) |
+| **Delete Pages** | Remove pages or ranges (e.g. `1, 3, 5-10`) |
+| **Compress PDF** | 3 presets — Light / Medium / Maximum. Shows before/after size and % saved |
+| **Split PDF** | Split into individual pages or extract ranges (e.g. `1-3, 5, 7-9`) |
+| **PDF → Word** | Convert to editable `.docx` |
+| **MD → PDF** | Markdown to styled PDF — tables, code blocks, headings |
+| **PDF → MD** | Extract PDF text as `.md` |
+
+### Video & Audio Downloader
+
+One feature, 10 platforms. Select platform → paste URL → pick quality → download.
+
+| Platform | |
+|---|---|
+| YouTube | All resolutions up to 4K |
+| Instagram | Posts, Reels, Stories |
+| TikTok | |
+| Twitter / X | |
+| Facebook | |
+| LinkedIn | |
+| Twitch | VODs |
+| Vimeo | |
+| Dailymotion | |
+| **Audio (MP3)** | 192kbps MP3 from any supported URL |
+
+- Real-time progress bar
+- Exact quality — formats pinned at fetch time
+- ffmpeg bundled, no install needed
 
 ---
 
 ## Installation
 
-### Requirements
-
-- Python 3.10+
-
-### Setup
+**Requirements:** Python 3.10+
 
 ```bash
-# Clone the repo
-git clone https://github.com/automatissa/autopdf.git
-cd autopdf
+git clone https://github.com/automatissa/fcksaas.git
+cd fcksaas
 
-# Create and activate a virtual environment
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 source .venv/bin/activate     # macOS / Linux
 
-# Install dependencies
 pip install -r requirements.txt
-```
-
-### Run
-
-```bash
-.venv\Scripts\python main.py
+python main.py
 ```
 
 ---
@@ -62,38 +82,63 @@ pip install -r requirements.txt
 | Library | Role |
 |---|---|
 | `PySide6` | Desktop UI (Qt6) |
-| `PyMuPDF` (`fitz`) | PDF rendering, text extraction, and MD→PDF story layout |
-| `pdf2docx` | PDF → Word (`.docx`) conversion |
-| `pypdf` | PDF merging and page deletion |
-| `markdown` | Markdown parsing (tables, fenced code) for MD → PDF |
-| `cryptography` | Encrypted PDF support (used internally by pypdf) |
+| `PyMuPDF` | PDF rendering, compression |
+| `pypdf` | PDF merge, split, delete pages |
+| `pdf2docx` | PDF → Word |
+| `markdown` | MD → PDF parsing |
+| `yt-dlp` | Video & audio downloading (1000+ sites) |
+| `imageio-ffmpeg` | Bundled ffmpeg — no system install needed |
+| `cryptography` | Encrypted PDF support |
 
 ---
 
 ## Project Structure
 
 ```
-autopdf/
-├── main.py                      # App entry point, layout, sidebar nav, theme
+fcksaas/
+├── main.py                         # Entry point, sidebar, theme
 ├── features/
-│   ├── base_feature.py          # Shared base class — runs tasks in a background thread
-│   ├── worker.py                # QThread worker that executes conversion functions
-│   ├── processing_dialog.py     # Animated loading dialog (spinner + indeterminate bar)
-│   ├── merge_feature.py         # Merge PDFs with drag & drop, reorder, page ranges
-│   ├── delete_pages_feature.py  # Delete specific pages or ranges from a PDF
-│   ├── pdf_to_word_feature.py   # PDF → .docx conversion
-│   ├── md_to_pdf_feature.py     # Markdown → PDF with HTML styling via PyMuPDF Story
-│   └── pdf_to_md_feature.py     # PDF text extraction → .md file
+│   ├── base_feature.py             # Base class — dialog helpers, task runner
+│   ├── worker.py                   # Background thread worker
+│   ├── processing_dialog.py        # Loading dialog
+│   ├── merge_feature.py
+│   ├── delete_pages_feature.py
+│   ├── compress_pdf_feature.py
+│   ├── split_pdf_feature.py
+│   ├── pdf_to_word_feature.py
+│   ├── md_to_pdf_feature.py
+│   ├── pdf_to_md_feature.py
+│   └── video_downloader_feature.py
 ├── requirements.txt
 └── icon_autopdf.ico
 ```
 
 ---
 
-## License
+## Built on the shoulders of giants
 
-GNU General Public License v3.0 — free to use, modify, and distribute under the same terms. See [LICENSE](LICENSE) for details.
+FckSaaS exists because these open source projects exist. Full respect.
+
+| Project | What it does for us |
+|---|---|
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | The engine behind the entire video & audio downloader — 1000+ sites, free forever |
+| [FFmpeg](https://ffmpeg.org) | Merges video/audio streams, converts to MP3 — the backbone of media processing |
+| [PyMuPDF](https://github.com/pymupdf/PyMuPDF) | Fast, powerful PDF rendering and compression |
+| [pypdf](https://github.com/py-pdf/pypdf) | Pure Python PDF merge, split, and page manipulation |
+| [pdf2docx](https://github.com/ArtifexSoftware/pdf2docx) | PDF → Word conversion |
+| [Python-Markdown](https://github.com/Python-Markdown/markdown) | Markdown parsing for MD → PDF |
+| [PySide6 / Qt](https://www.qt.io) | The entire UI framework |
+| [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg) | Bundles ffmpeg as a Python package — no system install needed |
+
+Without these projects, FckSaaS would be a blank window.
+Go star their repos.
 
 ---
 
-Built by [@automatissa](https://github.com/automatissa) in collaboration with Gemini AI and Claude Code.
+## License
+
+GPL-3.0 — free to use, modify, and distribute. See [LICENSE](LICENSE).
+
+---
+
+Built by [@automatissa](https://github.com/automatissa) with Gemini AI & Claude Code.

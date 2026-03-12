@@ -9,9 +9,12 @@ from PySide6.QtGui import QIcon
 
 from features.merge_feature import MergeFeature
 from features.delete_pages_feature import DeletePagesFeature
+from features.compress_pdf_feature import CompressPdfFeature
+from features.split_pdf_feature import SplitPdfFeature
 from features.pdf_to_word_feature import PdfToWordFeature
 from features.md_to_pdf_feature import MdToPdfFeature
 from features.pdf_to_md_feature import PdfToMdFeature
+from features.video_downloader_feature import VideoDownloaderFeature
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 PRIMARY_BG    = "#0E0E0E"
@@ -23,16 +26,19 @@ TEXT_COLOR    = "#ffffff"
 FEATURES = [
     MergeFeature,
     DeletePagesFeature,
+    CompressPdfFeature,
+    SplitPdfFeature,
     PdfToWordFeature,
     MdToPdfFeature,
     PdfToMdFeature,
+    VideoDownloaderFeature,
 ]
 
 
-class AutoPDFApp(QWidget):
+class FckSaaSApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("AutoPDF Pro")
+        self.setWindowTitle("FckSaaS")
         self.setMinimumSize(1000, 700)
 
         icon_path = os.path.join(os.path.dirname(__file__), "icon_autopdf.ico")
@@ -56,7 +62,7 @@ class AutoPDFApp(QWidget):
         sidebar.setObjectName("Sidebar")
         side_layout = QVBoxLayout(sidebar)
 
-        title = QLabel("AutoPDF")
+        title = QLabel("FckSaaS")
         title.setObjectName("Brand")
         side_layout.addWidget(title)
         side_layout.addSpacing(30)
@@ -96,6 +102,6 @@ class AutoPDFApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = AutoPDFApp()
+    window = FckSaaSApp()
     window.show()
     sys.exit(app.exec())
