@@ -35,10 +35,10 @@ FEATURES = [
 ]
 
 
-class FckSaaSApp(QWidget):
+class MyFileLabApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("FckSaaS")
+        self.setWindowTitle("MyFileLab")
         self.setMinimumSize(1000, 700)
 
         icon_path = os.path.join(os.path.dirname(__file__), "icon_autopdf.ico")
@@ -62,7 +62,7 @@ class FckSaaSApp(QWidget):
         sidebar.setObjectName("Sidebar")
         side_layout = QVBoxLayout(sidebar)
 
-        title = QLabel("FckSaaS")
+        title = QLabel("MyFileLab")
         title.setObjectName("Brand")
         side_layout.addWidget(title)
         side_layout.addSpacing(30)
@@ -102,6 +102,6 @@ class FckSaaSApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = FckSaaSApp()
+    window = MyFileLabApp()
     window.show()
     sys.exit(app.exec())

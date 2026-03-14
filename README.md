@@ -1,4 +1,4 @@
-# FckSaaS
+# MyFileLab
 
 > Stop paying. Start owning.
 
@@ -8,9 +8,9 @@ Built with Python and PySide6.
 
 ---
 
-## Why FckSaaS?
+## Why MyFileLab?
 
-| SaaS tools charge you for | FckSaaS gives you for free |
+| SaaS tools charge you for | MyFileLab gives you for free |
 |---|---|
 | Merging PDFs | ✅ |
 | Compressing PDFs | ✅ |
@@ -64,8 +64,8 @@ One feature, 10 platforms. Select platform → paste URL → pick quality → do
 **Requirements:** Python 3.10+
 
 ```bash
-git clone https://github.com/automatissa/fcksaas.git
-cd fcksaas
+git clone https://github.com/automatissa/myfilelab.git
+cd myfilelab
 
 python -m venv .venv
 .venv\Scripts\activate        # Windows
@@ -95,7 +95,7 @@ python main.py
 ## Project Structure
 
 ```
-fcksaas/
+myfilelab/
 ├── main.py                         # Entry point, sidebar, theme
 ├── features/
 │   ├── base_feature.py             # Base class — dialog helpers, task runner
@@ -117,7 +117,7 @@ fcksaas/
 
 ## Built on the shoulders of giants
 
-FckSaaS exists because these open source projects exist. Full respect.
+MyFileLab exists because these open source projects exist. Full respect.
 
 | Project | What it does for us |
 |---|---|
@@ -130,7 +130,7 @@ FckSaaS exists because these open source projects exist. Full respect.
 | [PySide6 / Qt](https://www.qt.io) | The entire UI framework |
 | [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg) | Bundles ffmpeg as a Python package — no system install needed |
 
-Without these projects, FckSaaS would be a blank window.
+Without these projects, MyFileLab would be a blank window.
 Go star their repos.
 
 ---

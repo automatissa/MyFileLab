@@ -1,4 +1,4 @@
-# FckSaaS — dependencies
+# MyFileLab — dependencies
 # Install: pip install -r requirements.txt
 
 # UI
