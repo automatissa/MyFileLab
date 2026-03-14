@@ -1,6 +1,6 @@
 # MyFileLab
 
-> Stop paying. Start owning.
+Stop paying. Start owning.
 
 A free, offline, open-source desktop app that replaces paid SaaS tools for PDF processing and video downloading. No cloud. No subscriptions. No file size limits. Everything runs on your machine.
 

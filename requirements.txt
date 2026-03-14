@@ -8,8 +8,12 @@ PySide6
 PyMuPDF          # Compress, MD→PDF, PDF→MD
 pypdf            # Merge, Split, Delete pages
 pdf2docx         # PDF → Word
+python-pptx      # PDF → PowerPoint (editable text boxes)
+pdfplumber       # PDF → Excel (table extraction)
+openpyxl         # PDF → Excel (write .xlsx)
 markdown         # MD → PDF parsing
 cryptography     # Encrypted PDF support (used by pypdf)
+pytesseract      # OCR — requires Tesseract installed on system
 
 # Video & Audio downloader
 yt-dlp           # Download from 1000+ platforms

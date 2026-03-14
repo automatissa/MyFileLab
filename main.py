@@ -7,13 +7,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIcon
 
-from features.merge_feature import MergeFeature
-from features.delete_pages_feature import DeletePagesFeature
-from features.compress_pdf_feature import CompressPdfFeature
-from features.split_pdf_feature import SplitPdfFeature
-from features.pdf_to_word_feature import PdfToWordFeature
-from features.md_to_pdf_feature import MdToPdfFeature
-from features.pdf_to_md_feature import PdfToMdFeature
+from features.pdf_tools_feature import PdfToolsFeature
+from features.pdf_export_feature import PdfExportFeature
 from features.video_downloader_feature import VideoDownloaderFeature
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
@@ -24,13 +19,8 @@ TEXT_COLOR    = "#ffffff"
 
 # ── Register features here to add new ones ─────────────────────────────────────
 FEATURES = [
-    MergeFeature,
-    DeletePagesFeature,
-    CompressPdfFeature,
-    SplitPdfFeature,
-    PdfToWordFeature,
-    MdToPdfFeature,
-    PdfToMdFeature,
+    PdfToolsFeature,
+    PdfExportFeature,
     VideoDownloaderFeature,
 ]
 
