@@ -573,6 +573,9 @@ def _find_tesseract() -> tuple:
                 os.chmod(exe, os.stat(exe).st_mode | _stat.S_IXUSR | _stat.S_IXGRP | _stat.S_IXOTH)
             env = os.environ.copy()
             env["TESSDATA_PREFIX"] = base
+            # Help tesseract find its bundled shared libs (Mac/Linux)
+            env["LD_LIBRARY_PATH"]   = base + os.pathsep + env.get("LD_LIBRARY_PATH", "")
+            env["DYLD_LIBRARY_PATH"] = base + os.pathsep + env.get("DYLD_LIBRARY_PATH", "")
             return exe, env
 
     # 2. Already on PATH (system install — tessdata prefix already in env)
