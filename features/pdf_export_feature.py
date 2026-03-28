@@ -10,11 +10,10 @@ from PySide6.QtWidgets import (
 
 from .base_feature import BaseFeature, AppCard
 
-_COLOR_WORD   = "#2B579A"
-_COLOR_PPT    = "#C43E1C"
-_COLOR_EXCEL  = "#217346"
-_COLOR_IMG    = "#D97706"
-_COLOR_MD_IN  = "#B5591A"
+_COLOR_WORD  = "#2B579A"
+_COLOR_EXCEL = "#217346"
+_COLOR_IMG   = "#D97706"
+_COLOR_MD_IN = "#B5591A"
 
 
 # ── Conversion functions ───────────────────────────────────────────────────────
@@ -23,7 +22,6 @@ def _do_word(src: str, dest: str):
     cv = Converter(src)
     cv.convert(dest, start=0, multi_processing=False)
     cv.close()
-
 
 
 def _do_excel(src: str, dest: str):
@@ -101,7 +99,7 @@ def _do_md_to_pdf(src: str, dest: str):
 # ── Feature widget ─────────────────────────────────────────────────────────────
 
 class PdfExportFeature(BaseFeature):
-    NAV_NAME = "PDF Converter"
+    NAV_NAME = "Converter"
 
     def __init__(self):
         super().__init__()
@@ -124,12 +122,11 @@ class PdfExportFeature(BaseFeature):
         layout.setContentsMargins(40, 40, 40, 40)
         layout.setSpacing(20)
 
-        layout.addWidget(QLabel("<h1>PDF Converter</h1>"))
+        layout.addWidget(QLabel("<h1>Converter</h1>"))
         layout.addWidget(QLabel(
             "Select a format — you'll be prompted to choose your file."
         ))
 
-        # ── 3-column grid of cards ────────────────────────────────────────────
         grid = QGridLayout()
         grid.setSpacing(16)
         grid.setColumnStretch(0, 1)
@@ -137,30 +134,27 @@ class PdfExportFeature(BaseFeature):
         grid.setColumnStretch(2, 1)
 
         cards = [
-            AppCard("W",  _COLOR_WORD,  "PDF to Word",
+            AppCard("W",   _COLOR_WORD,  "PDF to Word",
                 "Convert to an editable .docx document.",
                 self._convert_word),
-            AppCard("P",  _COLOR_PPT,   "PDF to PowerPoint",
-                "One slide per page."),
-            AppCard("X",  _COLOR_EXCEL, "PDF to Excel",
+            AppCard("X",   _COLOR_EXCEL, "PDF to Excel",
                 "Tables extracted. Falls back to plain text.",
                 self._convert_excel),
-            AppCard("IMG", _COLOR_IMG,  "Images to PDF",
+            AppCard("IMG", _COLOR_IMG,   "Images to PDF",
                 "Combine JPG, PNG or other images into a PDF.",
                 self._convert_images_to_pdf),
-            AppCard("MD", _COLOR_MD_IN, "Markdown to PDF",
+            AppCard("MD",  _COLOR_MD_IN, "Markdown to PDF",
                 "Styled PDF with tables and code blocks.",
                 self._convert_md_to_pdf),
         ]
 
-        positions = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
-        for card, (row, col) in zip(cards, positions):
-            grid.addWidget(card, row, col)
+        for i, card in enumerate(cards):
+            grid.addWidget(card, i // 3, i % 3)
 
         layout.addLayout(grid)
         layout.addStretch()
 
-    # ── Handlers — each opens its own file dialog ─────────────────────────────
+    # ── Handlers ──────────────────────────────────────────────────────────────
 
     def _stem(self, path: str) -> str:
         return os.path.splitext(path)[0]

@@ -258,7 +258,7 @@ def _progress_row(label: str, accent: str) -> tuple:
 # ── Feature widget ─────────────────────────────────────────────────────────────
 
 class VideoDownloaderFeature(BaseFeature):
-    NAV_NAME = "Video Downloader"
+    NAV_NAME = "Media Downloader"
 
     def __init__(self):
         super().__init__()
@@ -275,7 +275,7 @@ class VideoDownloaderFeature(BaseFeature):
         root.setSpacing(20)
 
         # ── Header ────────────────────────────────────────────────────────────
-        root.addWidget(QLabel("<h1>Video Downloader</h1>"))
+        root.addWidget(QLabel("<h1>Media Downloader</h1>"))
         sub = QLabel("YouTube, Instagram, TikTok, Twitter/X, Vimeo and 1000+ platforms.")
         sub.setStyleSheet(f"color:{_MUTED}; font-size:13px;")
         root.addWidget(sub)
@@ -356,10 +356,8 @@ class VideoDownloaderFeature(BaseFeature):
         root.addWidget(self._status_label)
 
         # ── Download button ───────────────────────────────────────────────────
-        self._btn_download = QPushButton("Download")
-        self._btn_download.setObjectName("Primary")
+        self._btn_download = self.primary_button("Download", self._download)
         self._btn_download.setEnabled(False)
-        self._btn_download.clicked.connect(self._download)
         root.addWidget(self._btn_download)
 
     # ── Fetch ──────────────────────────────────────────────────────────────────

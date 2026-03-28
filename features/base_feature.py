@@ -2,7 +2,7 @@ import os
 
 from PySide6.QtCore import QThread, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
-    QWidget, QMessageBox, QFileDialog,
+    QWidget, QMessageBox, QFileDialog, QPushButton,
     QDialog, QVBoxLayout, QLabel, QProgressBar, QFrame
 )
 
@@ -111,6 +111,26 @@ class BaseFeature(QWidget):
             files = dialog.selectedFiles()
             return files[0] if files else ""
         return ""
+
+    def primary_button(self, label: str, on_click) -> QPushButton:
+        """Standard primary action button — use this for every main execute button."""
+        btn = QPushButton(label)
+        btn.setStyleSheet("""
+            QPushButton {
+                background-color: #00f6ff;
+                color: black;
+                font-weight: bold;
+                font-size: 16px;
+                padding: 15px;
+                border-radius: 10px;
+                border: none;
+                margin-top: 10px;
+            }
+            QPushButton:hover { background-color: #00d6dd; }
+            QPushButton:disabled { background-color: #2a2a2c; color: #555; border: 1px solid #444; }
+        """)
+        btn.clicked.connect(on_click)
+        return btn
 
     def run_with_dialog(self, fn, success_msg: str):
         self._worker = ConversionWorker(fn)

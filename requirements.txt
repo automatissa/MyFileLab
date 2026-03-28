@@ -5,15 +5,18 @@
 PySide6
 
 # PDF tools
-PyMuPDF          # Compress, MD→PDF, PDF→MD
-pypdf            # Merge, Split, Delete pages
+PyMuPDF          # Compress, MD→PDF, OCR rendering
+pypdf            # Merge, Split, Delete pages, OCR PDF merge
 pdf2docx         # PDF → Word
-python-pptx      # PDF → PowerPoint (editable text boxes)
 pdfplumber       # PDF → Excel (table extraction)
 openpyxl         # PDF → Excel (write .xlsx)
 markdown         # MD → PDF parsing
 cryptography     # Encrypted PDF support (used by pypdf)
-pytesseract      # OCR — requires Tesseract installed on system
+# OCR: uses Tesseract binary directly (subprocess) — install from:
+# https://github.com/UB-Mannheim/tesseract/wiki
+
+# Image tools
+Pillow           # Enhance, Batch Export
 
 # Video & Audio downloader
 yt-dlp           # Download from 1000+ platforms

@@ -21,7 +21,7 @@ _COLOR_MERGE    = "#2B579A"
 _COLOR_SPLIT    = "#C43E1C"
 _COLOR_DELETE   = "#B91C1C"
 _COLOR_COMPRESS = "#217346"
-_COLOR_OCR      = "#555"
+_COLOR_OCR      = "#7C3AED"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -95,10 +95,7 @@ class _MergePanel(BaseFeature):
         btn_row.addStretch()
         layout.addLayout(btn_row)
 
-        btn_merge = QPushButton("Execute Merge")
-        btn_merge.setObjectName("Primary")
-        btn_merge.clicked.connect(self._merge)
-        layout.addWidget(btn_merge)
+        layout.addWidget(self.primary_button("Execute Merge", self._merge))
 
     def _add_files(self):
         for path in self.open_files_dialog("Select PDF Files", "PDF (*.pdf)"):
@@ -297,10 +294,7 @@ class _SplitPanel(BaseFeature):
         layout.addWidget(mode_card)
         layout.addStretch()
 
-        btn_split = QPushButton("Split PDF")
-        btn_split.setObjectName("Primary")
-        btn_split.clicked.connect(self._split)
-        layout.addWidget(btn_split)
+        layout.addWidget(self.primary_button("Split PDF", self._split))
 
     def _browse(self):
         path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
@@ -408,10 +402,7 @@ class _DeletePanel(BaseFeature):
         layout.addWidget(pages_card)
         layout.addStretch()
 
-        btn_run = QPushButton("Generate New PDF")
-        btn_run.setObjectName("Primary")
-        btn_run.clicked.connect(self._delete)
-        layout.addWidget(btn_run)
+        layout.addWidget(self.primary_button("Generate New PDF", self._delete))
 
     def _browse(self):
         path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
@@ -501,10 +492,7 @@ class _CompressPanel(BaseFeature):
         layout.addWidget(preset_card)
         layout.addStretch()
 
-        btn_run = QPushButton("Compress PDF")
-        btn_run.setObjectName("Primary")
-        btn_run.clicked.connect(self._compress)
-        layout.addWidget(btn_run)
+        layout.addWidget(self.primary_button("Compress PDF", self._compress))
 
     def _browse(self):
         path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
@@ -560,6 +548,161 @@ class _CompressPanel(BaseFeature):
         dialog.exec()
 
 
+_OCR_OUTPUTS = {
+    "Text file  (.txt)":      "txt",
+    "Searchable PDF  (.pdf)": "pdf",
+}
+
+
+def _find_tesseract() -> tuple:
+    """Return (exe_path, env_dict) for subprocess.run.
+
+    env_dict is either None (inherit process env) or a copy with TESSDATA_PREFIX
+    set to the bundled tessdata directory (PyInstaller frozen builds only).
+    """
+    import sys as _sys
+    import shutil as _shutil
+
+    # 1. Bundled inside a PyInstaller --onefile exe
+    if getattr(_sys, "frozen", False):
+        base = os.path.join(_sys._MEIPASS, "tesseract")
+        exe = os.path.join(base, "tesseract.exe" if _sys.platform == "win32" else "tesseract")
+        if os.path.exists(exe):
+            env = os.environ.copy()
+            env["TESSDATA_PREFIX"] = base   # tessdata/ is a subdir of base
+            return exe, env
+
+    # 2. Already on PATH (system install — tessdata prefix already in env)
+    found = _shutil.which("tesseract")
+    if found:
+        return found, None
+
+    # 3. Common Windows install locations
+    if _sys.platform == "win32":
+        for candidate in [
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            os.path.expanduser(r"~\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"),
+        ]:
+            if os.path.exists(candidate):
+                return candidate, None
+
+    raise RuntimeError(
+        "Tesseract not found.\n\n"
+        "Download and install Tesseract-OCR from:\n"
+        "https://github.com/UB-Mannheim/tesseract/wiki"
+    )
+
+
+class _OcrPanel(BaseFeature):
+    NAV_NAME = ""
+
+    def __init__(self):
+        super().__init__()
+        self._total_pages = 0
+        self._setup_ui()
+
+    def _setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(14)
+
+        layout.addWidget(QLabel("<h1>OCR</h1>"))
+        layout.addWidget(QLabel("Extract text from scanned PDFs."))
+
+        card, self._file_input, self._pages_label, btn = _file_card()
+        btn.clicked.connect(self._browse)
+        layout.addWidget(card)
+
+        out_card = QFrame()
+        out_card.setStyleSheet(f"background:{_BG_CARD}; border-radius:10px;")
+        oc = QVBoxLayout(out_card)
+        oc.setContentsMargins(16, 14, 16, 14)
+        oc.setSpacing(10)
+        oc.addWidget(QLabel("Output Format"))
+        self._format_combo = QComboBox()
+        for label in _OCR_OUTPUTS:
+            self._format_combo.addItem(label)
+        self._format_combo.setStyleSheet(
+            f"background:{_BG_INPUT}; border:1px solid {_BORDER}; padding:8px; border-radius:6px; color:white;"
+        )
+        oc.addWidget(self._format_combo)
+        layout.addWidget(out_card)
+        layout.addStretch()
+
+        layout.addWidget(self.primary_button("Run OCR", self._run_ocr))
+
+    def _browse(self):
+        path = self.open_file_dialog("Select a PDF", "PDF (*.pdf)")
+        if path:
+            self._file_input.setText(path)
+            self._total_pages = len(PdfReader(path).pages)
+            self._pages_label.setText(f"{self._total_pages} pages")
+
+    def _run_ocr(self):
+        src = self._file_input.text().strip()
+        if not src:
+            QMessageBox.warning(self, "Warning", "Please select a PDF file.")
+            return
+
+        try:
+            tesseract, tess_env = _find_tesseract()
+        except RuntimeError as e:
+            QMessageBox.critical(self, "Tesseract Not Found", str(e))
+            return
+
+        fmt = _OCR_OUTPUTS[self._format_combo.currentText()]
+        base = os.path.splitext(os.path.basename(src))[0] + "_ocr"
+        if fmt == "txt":
+            out = self.save_dialog("Save Text File", base + ".txt", "Text (*.txt)")
+        else:
+            out = self.save_dialog("Save Searchable PDF", base + ".pdf", "PDF (*.pdf)")
+        if not out:
+            return
+
+        def do_work():
+            import subprocess
+            import tempfile
+
+            doc = fitz.open(src)
+            with tempfile.TemporaryDirectory() as tmp:
+                if fmt == "txt":
+                    with open(out, "w", encoding="utf-8") as out_f:
+                        for i, page in enumerate(doc, 1):
+                            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+                            img_path = os.path.join(tmp, f"page_{i}.png")
+                            pix.save(img_path)
+                            result = subprocess.run(
+                                [tesseract, img_path, "stdout"],
+                                capture_output=True, text=True, check=True,
+                                env=tess_env,
+                            )
+                            out_f.write(f"--- Page {i} ---\n")
+                            out_f.write(result.stdout)
+                            out_f.write("\n\n")
+                else:
+                    # Render all pages, OCR each to a per-page PDF, then merge
+                    pdf_parts = []
+                    for i, page in enumerate(doc, 1):
+                        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+                        img_path = os.path.join(tmp, f"page_{i}.png")
+                        pix.save(img_path)
+                        out_base = os.path.join(tmp, f"page_{i}")
+                        subprocess.run(
+                            [tesseract, img_path, out_base, "pdf"],
+                            capture_output=True, check=True,
+                            env=tess_env,
+                        )
+                        pdf_parts.append(out_base + ".pdf")
+                    writer = PdfWriter()
+                    for part in pdf_parts:
+                        reader = PdfReader(part)
+                        for p in reader.pages:
+                            writer.add_page(p)
+                    with open(out, "wb") as f:
+                        writer.write(f)
+            doc.close()
+
+        self.run_with_dialog(do_work, "OCR completed successfully!")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -582,8 +725,8 @@ class PdfToolsFeature(BaseFeature):
 
         self._stack.addWidget(self._build_launcher())   # index 0
 
-        for panel in [_MergePanel(), _SplitPanel(), _DeletePanel(), _CompressPanel()]:
-            self._stack.addWidget(self._wrap(panel))    # index 1-4
+        for panel in [_MergePanel(), _SplitPanel(), _DeletePanel(), _CompressPanel(), _OcrPanel()]:
+            self._stack.addWidget(self._wrap(panel))    # index 1-5
 
     def _wrap(self, widget: QWidget) -> QWidget:
         wrapper = QWidget()
@@ -643,8 +786,9 @@ class PdfToolsFeature(BaseFeature):
             AppCard("↓",  _COLOR_COMPRESS, "Compress PDF",
                 "Reduce file size. Shows before/after size and % saved.",
                 lambda: self._stack.setCurrentIndex(4)),
-            AppCard("OCR", _COLOR_OCR,     "OCR",
-                "Extract text from scanned PDFs."),
+            AppCard("OCR", _COLOR_OCR, "OCR",
+                "Extract text from scanned PDFs.",
+                lambda: self._stack.setCurrentIndex(5)),
         ]
 
         for i, card in enumerate(cards):

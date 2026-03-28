@@ -1,0 +1,126 @@
+name: Build MyFileLab
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: MyFileLab-Windows
+            ext: .exe
+          - os: macos-latest
+            name: MyFileLab-Mac
+            ext: ""
+          - os: ubuntu-latest
+            name: MyFileLab-Linux
+            ext: ""
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      # ── Tesseract setup per OS ──────────────────────────────────────────────
+
+      - name: Setup Tesseract (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          choco install tesseract --version=5.3.3.20231005 -y
+          mkdir -p dist_assets/tesseract/tessdata
+          cp "C:/Program Files/Tesseract-OCR/tesseract.exe" dist_assets/tesseract/
+          cp "C:/Program Files/Tesseract-OCR/tessdata/eng.traineddata" dist_assets/tesseract/tessdata/
+
+      - name: Setup Tesseract (Mac)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install tesseract
+          mkdir -p dist_assets/tesseract/tessdata
+          cp $(which tesseract) dist_assets/tesseract/
+          TESSDATA=$(brew --prefix tesseract)/share/tessdata
+          cp "$TESSDATA/eng.traineddata" dist_assets/tesseract/tessdata/
+
+      - name: Setup Tesseract (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libgl1 libglib2.0-0 libxcb-xinerama0 libxcb-cursor0 libegl1 libxkbcommon-x11-0
+          mkdir -p dist_assets/tesseract/tessdata
+          cp $(which tesseract) dist_assets/tesseract/
+          cp /usr/share/tesseract-ocr/5/tessdata/eng.traineddata dist_assets/tesseract/tessdata/
+
+      # ── Build ───────────────────────────────────────────────────────────────
+
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: >
+          python -m PyInstaller
+          --onefile --windowed
+          --icon=icon_autopdf.ico
+          --name=${{ matrix.name }}
+          --add-binary "dist_assets/tesseract/tesseract.exe;tesseract"
+          --add-data "dist_assets/tesseract/tessdata;tesseract/tessdata"
+          main.py
+
+      - name: Build (Mac)
+        if: matrix.os == 'macos-latest'
+        run: >
+          python -m PyInstaller
+          --onefile --windowed
+          --name=${{ matrix.name }}
+          --add-binary "dist_assets/tesseract/tesseract:tesseract"
+          --add-data "dist_assets/tesseract/tessdata:tesseract/tessdata"
+          main.py
+
+      - name: Build (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: >
+          python -m PyInstaller
+          --onefile --windowed
+          --name=${{ matrix.name }}
+          --add-binary "dist_assets/tesseract/tesseract:tesseract"
+          --add-data "dist_assets/tesseract/tessdata:tesseract/tessdata"
+          main.py
+
+      # ── Upload ──────────────────────────────────────────────────────────────
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist/${{ matrix.name }}${{ matrix.ext }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -6,10 +6,12 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QStackedWidget, QButtonGroup, QFrame
 )
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 
 from features.pdf_tools_feature import PdfToolsFeature
 from features.pdf_export_feature import PdfExportFeature
 from features.video_downloader_feature import VideoDownloaderFeature
+from features.image_tools_feature import ImageToolsFeature
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 PRIMARY_BG    = "#0E0E0E"
@@ -21,6 +23,7 @@ TEXT_COLOR    = "#ffffff"
 FEATURES = [
     PdfToolsFeature,
     PdfExportFeature,
+    ImageToolsFeature,
     VideoDownloaderFeature,
 ]
 
@@ -71,6 +74,28 @@ class MyFileLabApp(QWidget):
             self._stack.addWidget(feature)
 
         side_layout.addStretch()
+
+        # ── Footer links ──────────────────────────────────────────────────────
+        footer = QFrame()
+        footer.setStyleSheet("border-top: 1px solid #2a2a2c; background: transparent;")
+        fl = QVBoxLayout(footer)
+        fl.setContentsMargins(14, 10, 14, 14)
+        fl.setSpacing(6)
+
+        lbl = QLabel(
+            'Built by <a href="https://www.linkedin.com/in/issadiouf/">Issa</a>'
+            ' · <a href="https://github.com/automatissa/MyFileLab">GitHub</a>'
+        )
+        lbl.setOpenExternalLinks(True)
+        lbl.setWordWrap(True)
+        lbl.setStyleSheet(
+            "color: #555; font-size: 11px; background: transparent; border: none;"
+            "a { color: #777; text-decoration: none; }"
+        )
+        fl.addWidget(lbl)
+
+        side_layout.addWidget(footer)
+
         layout.addWidget(sidebar)
         layout.addWidget(self._stack)
 
