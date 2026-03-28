@@ -13,15 +13,12 @@ jobs:
           - os: windows-latest
             name: MyFileLab-Windows
             ext: .exe
-            platform: windows
           - os: macos-latest
             name: MyFileLab-Mac
             ext: ""
-            platform: mac
           - os: ubuntu-latest
             name: MyFileLab-Linux
             ext: ""
-            platform: linux
 
     runs-on: ${{ matrix.os }}
 
@@ -49,7 +46,6 @@ jobs:
           choco install tesseract --version=5.3.3.20231005 -y
           mkdir -p dist_assets/tesseract/tessdata
           cp "C:/Program Files/Tesseract-OCR/tesseract.exe" dist_assets/tesseract/
-          cp "C:/Program Files/Tesseract-OCR/"*.dll dist_assets/tesseract/
           cp "C:/Program Files/Tesseract-OCR/tessdata/eng.traineddata" dist_assets/tesseract/tessdata/
 
       - name: Setup Tesseract (Mac)
@@ -58,9 +54,6 @@ jobs:
           brew install tesseract
           mkdir -p dist_assets/tesseract/tessdata
           cp $(which tesseract) dist_assets/tesseract/
-          BREW_LIB=$(brew --prefix)/lib
-          cp ${BREW_LIB}/libtesseract.*.dylib dist_assets/tesseract/ 2>/dev/null || true
-          cp ${BREW_LIB}/libleptonica.*.dylib  dist_assets/tesseract/ 2>/dev/null || true
           TESSDATA=$(brew --prefix tesseract)/share/tessdata
           cp "$TESSDATA/eng.traineddata" dist_assets/tesseract/tessdata/
 
@@ -68,18 +61,44 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng \
-            libgl1 libglib2.0-0 libxcb-xinerama0 libxcb-cursor0 libegl1 libxkbcommon-x11-0
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libgl1 libglib2.0-0 libxcb-xinerama0 libxcb-cursor0 libegl1 libxkbcommon-x11-0
           mkdir -p dist_assets/tesseract/tessdata
           cp $(which tesseract) dist_assets/tesseract/
-          cp $(ldconfig -p | grep -E 'libtesseract\.so' | awk '{print $NF}' | head -1) dist_assets/tesseract/ 2>/dev/null || true
-          cp $(ldconfig -p | grep -E 'libleptonica\.so' | awk '{print $NF}' | head -1) dist_assets/tesseract/ 2>/dev/null || true
           cp /usr/share/tesseract-ocr/5/tessdata/eng.traineddata dist_assets/tesseract/tessdata/
 
       # ── Build ───────────────────────────────────────────────────────────────
 
-      - name: Build
-        run: python build.py ${{ matrix.platform }} ${{ matrix.name }}
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: >
+          python -m PyInstaller
+          --onefile --windowed
+          --icon=icon_autopdf.ico
+          --name=${{ matrix.name }}
+          --add-binary "dist_assets/tesseract/tesseract.exe;tesseract"
+          --add-data "dist_assets/tesseract/tessdata;tesseract/tessdata"
+          main.py
+
+      - name: Build (Mac)
+        if: matrix.os == 'macos-latest'
+        run: >
+          python -m PyInstaller
+          --onefile --windowed
+          --name=${{ matrix.name }}
+          --add-binary "dist_assets/tesseract/tesseract:tesseract"
+          --add-data "dist_assets/tesseract/tessdata:tesseract/tessdata"
+          main.py
+
+      - name: Build (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: >
+          python -m PyInstaller
+          --onefile --windowed
+          --name=${{ matrix.name }}
+          --add-binary "dist_assets/tesseract/tesseract:tesseract"
+          --add-data "dist_assets/tesseract/tessdata:tesseract/tessdata"
+          main.py
 
       # ── Upload ──────────────────────────────────────────────────────────────
 
