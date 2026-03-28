@@ -568,8 +568,11 @@ def _find_tesseract() -> tuple:
         base = os.path.join(_sys._MEIPASS, "tesseract")
         exe = os.path.join(base, "tesseract.exe" if _sys.platform == "win32" else "tesseract")
         if os.path.exists(exe):
+            if _sys.platform != "win32":
+                import stat as _stat
+                os.chmod(exe, os.stat(exe).st_mode | _stat.S_IXUSR | _stat.S_IXGRP | _stat.S_IXOTH)
             env = os.environ.copy()
-            env["TESSDATA_PREFIX"] = base   # tessdata/ is a subdir of base
+            env["TESSDATA_PREFIX"] = base
             return exe, env
 
     # 2. Already on PATH (system install — tessdata prefix already in env)
