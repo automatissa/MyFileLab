@@ -31,42 +31,23 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install system deps (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgl1 libglib2.0-0 \
+            libxcb-xinerama0 libxcb-cursor0 \
+            libegl1 libxkbcommon-x11-0 \
+            libdbus-1-3
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
 
-      # ── Tesseract setup per OS ──────────────────────────────────────────────
-
-      - name: Setup Tesseract (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: |
-          choco install tesseract --version=5.3.3.20231005 -y
-          mkdir -p dist_assets/tesseract/tessdata
-          cp "C:/Program Files/Tesseract-OCR/tesseract.exe" dist_assets/tesseract/
-          cp "C:/Program Files/Tesseract-OCR/tessdata/eng.traineddata" dist_assets/tesseract/tessdata/
-
-      - name: Setup Tesseract (Mac)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install tesseract
-          mkdir -p dist_assets/tesseract/tessdata
-          cp $(which tesseract) dist_assets/tesseract/
-          TESSDATA=$(brew --prefix tesseract)/share/tessdata
-          cp "$TESSDATA/eng.traineddata" dist_assets/tesseract/tessdata/
-
-      - name: Setup Tesseract (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libgl1 libglib2.0-0 libxcb-xinerama0 libxcb-cursor0 libegl1 libxkbcommon-x11-0
-          mkdir -p dist_assets/tesseract/tessdata
-          cp $(which tesseract) dist_assets/tesseract/
-          cp /usr/share/tesseract-ocr/5/tessdata/eng.traineddata dist_assets/tesseract/tessdata/
-
-      # ── Build ───────────────────────────────────────────────────────────────
+      # ── Windows — single .exe ───────────────────────────────────────────────
 
       - name: Build (Windows)
         if: matrix.os == 'windows-latest'
@@ -75,38 +56,66 @@ jobs:
           python -m PyInstaller
           --onefile --windowed
           --icon=icon_autopdf.ico
-          --name=${{ matrix.name }}
-          --add-binary "dist_assets/tesseract/tesseract.exe;tesseract"
-          --add-data "dist_assets/tesseract/tessdata;tesseract/tessdata"
+          --add-data "icon_autopdf.ico;."
+          --name=MyFileLab-Windows
           main.py
+
+      - name: Upload (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyFileLab-Windows
+          path: dist/MyFileLab-Windows.exe
+
+      # ── macOS — .app bundle zipped ──────────────────────────────────────────
 
       - name: Build (Mac)
         if: matrix.os == 'macos-latest'
         run: >
           python -m PyInstaller
-          --onefile --windowed
-          --name=${{ matrix.name }}
-          --add-binary "dist_assets/tesseract/tesseract:tesseract"
-          --add-data "dist_assets/tesseract/tessdata:tesseract/tessdata"
+          --windowed
+          --icon=icon_autopdf.ico
+          --add-data "icon_autopdf.ico:."
+          --name=MyFileLab
           main.py
+
+      - name: Zip .app (Mac)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd dist
+          zip -r MyFileLab-Mac.zip MyFileLab.app
+
+      - name: Upload (Mac)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyFileLab-Mac
+          path: dist/MyFileLab-Mac.zip
+
+      # ── Linux — single binary, executable bit preserved ────────────────────
 
       - name: Build (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: >
           python -m PyInstaller
           --onefile --windowed
-          --name=${{ matrix.name }}
-          --add-binary "dist_assets/tesseract/tesseract:tesseract"
-          --add-data "dist_assets/tesseract/tessdata:tesseract/tessdata"
+          --icon=icon_autopdf.ico
+          --add-data "icon_autopdf.ico:."
+          --name=MyFileLab-Linux
           main.py
 
-      # ── Upload ──────────────────────────────────────────────────────────────
+      - name: Set executable bit (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: chmod +x dist/MyFileLab-Linux
 
-      - name: Upload artifact
+      - name: Upload (Linux)
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}
-          path: dist/${{ matrix.name }}${{ matrix.ext }}
+          name: MyFileLab-Linux
+          path: dist/MyFileLab-Linux
+
+  # ── Release — attach all 3 artifacts ───────────────────────────────────────
 
   release:
     needs: build
@@ -123,6 +132,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/**/*
+          files: |
+            dist/MyFileLab-Windows/MyFileLab-Windows.exe
+            dist/MyFileLab-Mac/MyFileLab-Mac.zip
+            dist/MyFileLab-Linux/MyFileLab-Linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

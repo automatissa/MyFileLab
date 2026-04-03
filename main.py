@@ -1,6 +1,16 @@
 import sys
 import os
 
+
+def _resource(relative: str) -> str:
+    """Resolve a resource path — works both in dev and PyInstaller frozen exe."""
+    if getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, relative)
+
+
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QStackedWidget, QButtonGroup, QFrame
@@ -34,9 +44,11 @@ class MyFileLabApp(QWidget):
         self.setWindowTitle("MyFileLab")
         self.setMinimumSize(1000, 700)
 
-        icon_path = os.path.join(os.path.dirname(__file__), "icon_autopdf.ico")
+        icon_path = _resource("icon_autopdf.ico")
         if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
+            icon = QIcon(icon_path)
+            self.setWindowIcon(icon)
+            QApplication.instance().setWindowIcon(icon)
 
         self._setup_ui()
         self._apply_styles()
