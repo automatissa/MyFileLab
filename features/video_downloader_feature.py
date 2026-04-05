@@ -1,4 +1,3 @@
-import os
 import re
 from collections import defaultdict
 
@@ -154,7 +153,15 @@ class _VideoFetchWorker(QThread):
                     best_v = max(by_height[h],
                                  key=lambda f: f.get("vbr") or f.get("tbr") or 0)
                     vid_id = best_v["format_id"]
-                    fmt_id = f"{vid_id}+{best_audio['format_id']}" if best_audio else vid_id
+                    has_audio = best_v.get("acodec") not in (None, "none")
+                    if best_audio:
+                        fmt_id = f"{vid_id}+{best_audio['format_id']}"
+                    elif has_audio:
+                        # stream already contains audio (e.g. Twitter/X)
+                        fmt_id = vid_id
+                    else:
+                        # no separate audio stream and video has no audio — let yt-dlp pick
+                        fmt_id = f"{vid_id}+bestaudio/best"
                     choices.append((_height_label(h), fmt_id))
             else:
                 video_fmts = [f for f in formats if f.get("vcodec") not in (None, "none")]
