@@ -6,8 +6,6 @@ A free, offline, open-source desktop app that replaces paid SaaS tools for PDF p
 
 Built with Python and PySide6.
 
-**[GitHub](https://github.com/automatissa/MyFileLab) · [LinkedIn](https://www.linkedin.com/in/issadiouf/)**
-
 ---
 
 ## Why MyFileLab?
