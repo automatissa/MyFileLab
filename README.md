@@ -146,7 +146,7 @@ python main.py
 
 ## License
 
-GPL-3.0 — free to use, modify, and distribute. See [LICENSE](LICENSE).
+AGPL-3.0 — free to use, modify, and distribute. Any use, including over a network, requires sharing modifications. See [LICENSE](LICENSE).
 
 ---
 
