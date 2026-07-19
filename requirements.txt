@@ -19,3 +19,6 @@ Pillow           # Enhance, Batch Export
 # Video & Audio downloader
 yt-dlp           # Download from 1000+ platforms
 imageio-ffmpeg   # Bundled ffmpeg — no system install needed
+
+# Metadata Editor
+lxml             # Office Open XML manipulation for docx/xlsx/pptx metadata

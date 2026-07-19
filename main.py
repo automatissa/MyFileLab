@@ -22,6 +22,7 @@ from features.pdf_tools_feature import PdfToolsFeature
 from features.pdf_export_feature import PdfExportFeature
 from features.video_downloader_feature import VideoDownloaderFeature
 from features.image_tools_feature import ImageToolsFeature
+from features.metadata_feature import MetadataEditorFeature
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 PRIMARY_BG    = "#0E0E0E"
@@ -35,6 +36,7 @@ FEATURES = [
     PdfExportFeature,
     ImageToolsFeature,
     VideoDownloaderFeature,
+    MetadataEditorFeature,
 ]
 
 
