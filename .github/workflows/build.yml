@@ -57,6 +57,8 @@ jobs:
           --onefile --windowed
           --icon=icon_autopdf.ico
           --add-data "icon_autopdf.ico;."
+          --add-data "LICENSE;."
+          --add-data "TERMS_OF_USE.md;."
           --name=MyFileLab-Windows
           main.py
 
@@ -76,6 +78,8 @@ jobs:
           --windowed
           --icon=icon_autopdf.ico
           --add-data "icon_autopdf.ico:."
+          --add-data "LICENSE:."
+          --add-data "TERMS_OF_USE.md:."
           --name=MyFileLab
           main.py
 
@@ -101,6 +105,8 @@ jobs:
           --onefile --windowed
           --icon=icon_autopdf.ico
           --add-data "icon_autopdf.ico:."
+          --add-data "LICENSE:."
+          --add-data "TERMS_OF_USE.md:."
           --name=MyFileLab-Linux
           main.py
 
