@@ -1,9 +1,7 @@
 import os
 import re
-from collections import defaultdict
 
 from PySide6.QtCore import QSettings
-from PySide6.QtWidgets import QMessageBox
 
 
 # ── App-wide settings ──────────────────────────────────────────────────────────
@@ -143,22 +141,17 @@ def prompt_password(parent, filepath: str) -> str | None:
 def open_pdf_reader(filepath: str, parent=None):
     """Open a PdfReader, prompting for password if needed. Returns PdfReader or raises."""
     from pypdf import PdfReader
-    try:
-        reader = PdfReader(filepath)
+    reader = PdfReader(filepath)
+    if reader.is_encrypted:
+        if parent is None:
+            raise ValueError("PDF is encrypted and no parent widget for password prompt.")
+        password = prompt_password(parent, filepath)
+        if password is None:
+            raise ValueError("Password required to open this PDF.")
+        reader.decrypt(password)
         if reader.is_encrypted:
-            if parent is None:
-                raise ValueError("PDF is encrypted and no parent widget for password prompt.")
-            password = prompt_password(parent, filepath)
-            if password is None:
-                raise ValueError("Password required to open this PDF.")
-            reader.decrypt(password)
-            if reader.is_encrypted:
-                raise ValueError("Incorrect password.")
-        return reader
-    except Exception as e:
-        if "password" in str(e).lower() or "encrypted" in str(e).lower():
-            raise
-        raise
+            raise ValueError("Incorrect password.")
+    return reader
 
 
 def open_fitz_doc(filepath: str, parent=None):

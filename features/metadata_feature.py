@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QLineEdit, QFrame, QScrollArea,
-    QWidget, QCheckBox, QSizePolicy
+    QWidget, QCheckBox, QSizePolicy, QMessageBox
 )
 
 from .base_feature import BaseFeature
@@ -520,11 +520,10 @@ class MetadataEditorFeature(BaseFeature):
         try:
             metadata = _read_all_metadata(path)
         except Exception as e:
-            from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(self, "Read Error", f"Could not read metadata:\n{e}")
             return
 
-        self._clear_panels()
+        self._clear_rows()
 
         for field_key, field_label in _FIELD_DEFS:
             orig = metadata.get(field_key)
@@ -555,7 +554,6 @@ class MetadataEditorFeature(BaseFeature):
                 metadata_to_write[field_key] = val
 
         if not metadata_to_write:
-            from PySide6.QtWidgets import QMessageBox
             QMessageBox.information(self, "No Changes", "No fields are checked for modification.")
             return
 
@@ -566,7 +564,7 @@ class MetadataEditorFeature(BaseFeature):
 
         self._load_file(self._current_path)
 
-    def _clear_panels(self):
+    def _clear_rows(self):
         def _clear_layout(layout):
             while layout.count():
                 item = layout.takeAt(0)

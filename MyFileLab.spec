@@ -5,7 +5,11 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ('LICENSE', '.'),
+        ('TERMS_OF_USE.md', '.'),
+        ('icon_autopdf.ico', '.'),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

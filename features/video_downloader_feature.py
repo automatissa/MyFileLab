@@ -1,4 +1,3 @@
-import re
 from collections import defaultdict
 
 import imageio_ffmpeg
@@ -10,6 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from .base_feature import BaseFeature
+from .utils import safe_filename
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 _BG_CARD  = "#2a2a2c"
@@ -97,10 +97,6 @@ class _SelectCard(QFrame):
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
-
-def _safe_filename(title: str) -> str:
-    return re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", title).strip() or "video"
-
 
 def _height_label(h: int) -> str:
     labels = {2160: "4K · 2160p", 1440: "2K · 1440p", 1080: "Full HD · 1080p",
@@ -429,7 +425,7 @@ class VideoDownloaderFeature(BaseFeature):
             self._show_status("Select Video, Audio or both first.", error=False)
             return
 
-        stem = _safe_filename(self._video_title)
+        stem = safe_filename(self._video_title)
 
         # Collect save paths before starting any worker
         if want_video:

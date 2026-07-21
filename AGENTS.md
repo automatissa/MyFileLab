@@ -8,7 +8,6 @@ This file provides guidance to AI coding agents when working with code in this r
 # Dev
 python -m venv .venv && .venv\Scripts\activate   # Windows
 pip install -r requirements.txt
-playwright install chromium   # one-time ~180 MB download for Markdown→PDF
 python main.py
 
 # Build (single-file exe)
@@ -19,7 +18,9 @@ Tests use `pytest`. Run with `python -m pytest tests\ -v`. No linter is configur
 
 ## Architecture
 
-**Feature plugin pattern** — `main.py` holds a `FEATURES` list. Each entry is a `BaseFeature` subclass. Adding a new feature means creating `features/your_feature.py`, subclassing `BaseFeature`, setting `NAV_NAME`, and appending the class to `FEATURES`. The sidebar nav and stack are built automatically at startup.
+**Feature plugin pattern** — `main.py` holds a `FEATURES` list and a `LEGAL_FEATURES` list. Each entry is a `BaseFeature` subclass. Adding a new feature means creating `features/your_feature.py`, subclassing `BaseFeature`, setting `NAV_NAME`, and appending the class to `FEATURES`. The sidebar nav and stack are built automatically at startup.
+
+**Sidebar** — functional `FEATURES` appear first, then a thin separator line (`QFrame.HLine`), then `LEGAL_FEATURES` (License, Terms). Legal nav buttons use `#LegalNav` style (smaller, muted) and are distinct from functional ones.
 
 **`BaseFeature`** (`features/base_feature.py`) is the root every feature inherits from. Key methods to reuse:
 - `run_with_dialog(fn, success_msg)` — runs `fn` in a `QThread`, shows the spinner dialog, then a success/error `QMessageBox`. Use this for every blocking operation.
@@ -32,7 +33,7 @@ Tests use `pytest`. Run with `python -m pytest tests\ -v`. No linter is configur
 - `pypdf` — merge, split, delete pages (pure Python, page-level manipulation)
 - `PyMuPDF` (`fitz`) — compress, render, and the Markdown→PDF `fitz.Story` pipeline
 
-**Asset resolution** — `_resource(relative)` in `main.py` resolves paths correctly in both dev and PyInstaller frozen builds via `sys._MEIPASS`. Use this for any bundled file (icons, binaries). The icon must be listed in `MyFileLab.spec` under `datas` to be included in the exe.
+**Asset resolution** — `_resource(relative)` in `main.py` resolves paths correctly in both dev and PyInstaller frozen builds via `sys._MEIPASS`. Use this for any bundled file (icons, binaries). Bundled data files must be listed in `MyFileLab.spec` under `datas` to be included in the exe.
 
 **Media downloader workers** — two-phase: `_VideoFetchWorker` calls yt-dlp with `skip_download=True` to enumerate quality options, then `_VideoDownloadWorker` does the actual download. FFmpeg is sourced from `imageio_ffmpeg.get_ffmpeg_exe()` — no system FFmpeg required.
 
@@ -52,3 +53,5 @@ Tests use `pytest`. Run with `python -m pytest tests\ -v`. No linter is configur
 - `parse_page_range_groups` — same but returns separate groups for split feature
 - `safe_filename` / `readable_size` — string formatting helpers
 - `prompt_password` / `open_pdf_reader` / `open_fitz_doc` — encrypted PDF handling
+
+**Legal viewer** (`features/legal_feature.py`) — renders LICENSE and TERMS_OF_USE.md as styled HTML in a `QLabel` via Python-Markdown, wrapped in a `QScrollArea`. `QLabel` is purely static (no navigation engine) — `linkActivated` handles external URLs and cross-tab navigation. A `_LegalViewerBase` class handles the shared logic; `LicenseFeature` and `TermsOfUseFeature` are thin subclasses. Both files must be listed in `MyFileLab.spec` under `datas` for exe bundling.

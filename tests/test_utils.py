@@ -4,7 +4,6 @@ Run with: python -m pytest tests\test_utils.py -v
 """
 
 import os
-import tempfile
 import pytest
 
 # Add project root to path for imports

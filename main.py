@@ -16,13 +16,13 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QStackedWidget, QButtonGroup, QFrame
 )
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt
 
 from features.pdf_tools_feature import PdfToolsFeature
 from features.pdf_export_feature import PdfExportFeature
 from features.video_downloader_feature import VideoDownloaderFeature
 from features.image_tools_feature import ImageToolsFeature
 from features.metadata_feature import MetadataEditorFeature
+from features.legal_feature import LicenseFeature, TermsOfUseFeature
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 PRIMARY_BG    = "#0E0E0E"
@@ -37,6 +37,11 @@ FEATURES = [
     ImageToolsFeature,
     VideoDownloaderFeature,
     MetadataEditorFeature,
+]
+
+LEGAL_FEATURES = [
+    LicenseFeature,
+    TermsOfUseFeature,
 ]
 
 
@@ -87,6 +92,25 @@ class MyFileLabApp(QWidget):
 
             self._stack.addWidget(feature)
 
+        # ── Separator ─────────────────────────────────────────────────────────
+        side_layout.addSpacing(12)
+        sep = QFrame()
+        sep.setFrameShape(QFrame.HLine)
+        sep.setStyleSheet("background:#3a3a3c; max-height:1px; margin:0 14px; border:none;")
+        side_layout.addWidget(sep)
+        side_layout.addSpacing(4)
+
+        for index, FeatureClass in enumerate(LEGAL_FEATURES, start=len(FEATURES)):
+            feature = FeatureClass()
+
+            btn = QPushButton(feature.NAV_NAME)
+            btn.setCheckable(True)
+            btn.setObjectName("LegalNav")
+            self._nav_group.addButton(btn, index)
+            side_layout.addWidget(btn)
+
+            self._stack.addWidget(feature)
+
         side_layout.addStretch()
 
         # ── Footer links ──────────────────────────────────────────────────────
@@ -123,6 +147,9 @@ class MyFileLabApp(QWidget):
             QPushButton {{ background: transparent; border: none; padding: 15px; text-align: left; font-size: 14px; border-radius: 5px; }}
             QPushButton:hover {{ background: #333; }}
             QPushButton:checked {{ background: #004545; color: {ACCENT_COLOR}; font-weight: bold; }}
+            QPushButton#LegalNav {{ padding: 10px 15px; font-size: 12px; color: #888; }}
+            QPushButton#LegalNav:hover {{ background: #2a2a2c; }}
+            QPushButton#LegalNav:checked {{ background: #004545; color: {ACCENT_COLOR}; font-weight: bold; }}
             QPushButton#Primary {{ background-color: {ACCENT_COLOR}; color: black; font-weight: bold; padding: 15px; border-radius: 10px; font-size: 16px; margin-top: 10px; }}
             QPushButton#Primary:hover {{ background-color: #00d6dd; }}
             QLineEdit {{ background: {SECONDARY_BG}; border: 1px solid #444; padding: 10px; border-radius: 5px; color: white; }}

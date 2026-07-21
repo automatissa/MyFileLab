@@ -55,29 +55,6 @@ def _input_card(label="Image File", placeholder="Select an image…"):
     return card, inp, btn
 
 
-def _preview_widget():
-    """Returns a QLabel sized for image previews."""
-    lbl = QLabel("No image selected")
-    lbl.setFixedHeight(160)
-    lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    lbl.setStyleSheet(
-        f"background:{_BG_INPUT}; border:1px solid {_BORDER}; "
-        f"border-radius:8px; color:{_MUTED}; font-size:13px;"
-    )
-    return lbl
-
-
-def _load_preview(label: QLabel, path: str):
-    pix = QPixmap(path)
-    if not pix.isNull():
-        label.setPixmap(
-            pix.scaled(label.width() or 400, label.height(),
-                       Qt.AspectRatioMode.KeepAspectRatio,
-                       Qt.TransformationMode.SmoothTransformation)
-        )
-    else:
-        label.setText(os.path.basename(path))
-
 
 def _slider_row(label: str, min_val=50, max_val=200, default=100):
     """Returns (QFrame, QSlider, value_label).  Values map to x/100 multiplier."""

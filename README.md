@@ -89,6 +89,14 @@ chmod +x MyFileLab-Linux
 | **+ 1000 more** | Powered by yt-dlp |
 | **Audio (MP3)** | 192 kbps MP3 from any supported URL |
 
+### Metadata Editor
+
+| Feature | Description |
+|---|---|
+| **View & Edit Metadata** | Read/write metadata for PDF, DOCX, XLSX, PPTX. Read EXIF for images |
+| **Table layout** | 4-column view: checkbox, field name, current value, edit input |
+| **Preserves unmodified data** | Only checked fields are written; everything else stays intact |
+
 ---
 
 ## Run from source
@@ -121,6 +129,7 @@ python main.py
 | `openpyxl` | Write `.xlsx` files |
 | `markdown` | Markdown → PDF parsing |
 | `Pillow` | Image enhance and batch export |
+| `lxml` | Office Open XML metadata read/write (docx/xlsx/pptx) |
 | `yt-dlp` | Video & audio downloading (1000+ sites) |
 | `imageio-ffmpeg` | Bundled FFmpeg — no system install needed |
 | `cryptography` | Encrypted PDF support |
