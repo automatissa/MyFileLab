@@ -61,6 +61,7 @@ jobs:
           --add-data "TERMS_OF_USE.md;."
           --collect-all yt_dlp
           --collect-all certifi
+          --collect-submodules features
           --name=MyFileLab-Windows
           main.py
 
@@ -84,6 +85,7 @@ jobs:
           --add-data "TERMS_OF_USE.md:."
           --collect-all yt_dlp
           --collect-all certifi
+          --collect-submodules features
           --name=MyFileLab
           main.py
 
@@ -113,6 +115,7 @@ jobs:
           --add-data "TERMS_OF_USE.md:."
           --collect-all yt_dlp
           --collect-all certifi
+          --collect-submodules features
           --name=MyFileLab-Linux
           main.py
 
