@@ -12,6 +12,7 @@ a = Analysis(
     ],
     hiddenimports=[
         'certifi',
+        'curl_cffi',
         'yt_dlp.compat._legacy',
         'features',
         'features.base_feature',

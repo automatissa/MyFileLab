@@ -106,6 +106,16 @@ def _height_label(h: int) -> str:
 
 # ── Background workers ─────────────────────────────────────────────────────────
 
+_VIMEO_HEADERS = {"Referer": "https://vimeo.com/"}
+
+
+def _build_opts(extra: dict = None) -> dict:
+    opts = {"quiet": True, "no_warnings": True}
+    if extra:
+        opts.update(extra)
+    return opts
+
+
 class _VideoFetchWorker(QThread):
     finished = Signal(list, str)
     error    = Signal(str)
@@ -116,9 +126,20 @@ class _VideoFetchWorker(QThread):
 
     def run(self):
         try:
-            ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(self._url, download=False)
+            opts = _build_opts({"skip_download": True})
+            if "vimeo.com" in self._url:
+                opts["http_headers"] = _VIMEO_HEADERS
+
+            try:
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    info = ydl.extract_info(self._url, download=False)
+            except Exception:
+                if "vimeo.com" not in self._url:
+                    raise
+                opts["http_headers"] = {"Referer": "https://player.vimeo.com/"}
+                opts["extractor_args"] = {"vimeo": {"player_args": []}}
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    info = ydl.extract_info(self._url, download=False)
 
             title   = info.get("title") or "video"
             formats = info.get("formats", [])
@@ -199,13 +220,19 @@ class _VideoDownloadWorker(QThread):
                 elif d["status"] == "finished":
                     self.progress.emit(99)
 
+            common = {
+                "outtmpl": self._out_path,
+                "ffmpeg_location": ffmpeg,
+                "overwrites": True, "quiet": True, "no_warnings": True,
+                "progress_hooks": [_hook],
+            }
+            if "vimeo.com" in self._url:
+                common["http_headers"] = _VIMEO_HEADERS
+
             if self._audio_only:
                 ydl_opts = {
+                    **common,
                     "format": self._format_id,
-                    "outtmpl": self._out_path,
-                    "ffmpeg_location": ffmpeg,
-                    "overwrites": True, "quiet": True, "no_warnings": True,
-                    "progress_hooks": [_hook],
                     "postprocessors": [{
                         "key": "FFmpegExtractAudio",
                         "preferredcodec": "mp3",
@@ -214,12 +241,9 @@ class _VideoDownloadWorker(QThread):
                 }
             else:
                 ydl_opts = {
+                    **common,
                     "format": self._format_id,
-                    "outtmpl": self._out_path,
                     "merge_output_format": "mp4",
-                    "ffmpeg_location": ffmpeg,
-                    "overwrites": True, "quiet": True, "no_warnings": True,
-                    "progress_hooks": [_hook],
                 }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -407,7 +431,15 @@ class VideoDownloaderFeature(BaseFeature):
         self._btn_fetch.setText("Fetch")
         lower = msg.lower()
         if any(w in lower for w in ("unsupported", "no video formats", "unable to extract")):
-            self._show_status("Platform not supported.", error=True)
+            self._show_status("This platform is not supported or the URL is incorrect.", error=True)
+        elif "tls" in lower or "fingerprint" in lower:
+            self._show_status("TLS blocked by platform — try a different URL.", error=True)
+        elif "401" in msg or "403" in msg or "unauthorized" in lower:
+            self._show_status("Access denied — this video may be private or region-locked.", error=True)
+        elif "not found" in lower or "404" in msg:
+            self._show_status("Video not found — the URL may be invalid or the video was removed.", error=True)
+        elif "network" in lower or "connection" in lower or "timeout" in lower:
+            self._show_status("Network error — check your internet connection.", error=True)
         else:
             self._show_status(f"Could not fetch: {msg}", error=True)
 
@@ -481,7 +513,17 @@ class VideoDownloaderFeature(BaseFeature):
         if kind in self._pending:
             self._pending.remove(kind)
         self._btn_download.setEnabled(True)
-        self._show_status(f"❌  {msg}", error=True)
+        bar = self._mp4_bar if kind == "video" else self._mp3_bar
+        bar.setValue(0)
+        lower = msg.lower()
+        if "403" in msg or "401" in msg or "unauthorized" in lower:
+            self._show_status(f"{kind.title()} failed — access denied (private or region-locked).", error=True)
+        elif "network" in lower or "connection" in lower or "timeout" in lower:
+            self._show_status(f"{kind.title()} failed — network error.", error=True)
+        elif "disk" in lower or "space" in lower or "permission" in lower:
+            self._show_status(f"{kind.title()} failed — check disk space or write permissions.", error=True)
+        else:
+            self._show_status(f"{kind.title()} failed: {msg}", error=True)
 
     # ── Status helpers ─────────────────────────────────────────────────────────
 
