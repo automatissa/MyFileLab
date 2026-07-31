@@ -18,7 +18,7 @@ Tests use `pytest`. Run with `python -m pytest tests\ -v`. No linter is configur
 
 ## Architecture
 
-**Feature plugin pattern** — `main.py` holds a `FEATURES` list and a `LEGAL_FEATURES` list. Each entry is a `BaseFeature` subclass. Adding a new feature means creating `features/your_feature.py`, subclassing `BaseFeature`, setting `NAV_NAME`, and appending the class to `FEATURES`. The sidebar nav and stack are built automatically at startup.
+**Feature plugin pattern** — `main.py` holds `_FEATURE_SPECS` and `_LEGAL_SPECS` lists. Each entry is `(module_path, class_name, nav_name)`, loaded lazily via `importlib.import_module`. Adding a feature means creating `features/your_feature.py`, subclassing `BaseFeature`, setting `NAV_NAME`, and appending to `_FEATURE_SPECS`. Features beyond the first are deferred with `QTimer.singleShot` so the window paints before heavy imports run.
 
 **Sidebar** — functional `FEATURES` appear first, then a thin separator line (`QFrame.HLine`), then `LEGAL_FEATURES` (License, Terms). Legal nav buttons use `#LegalNav` style (smaller, muted) and are distinct from functional ones.
 
@@ -26,6 +26,7 @@ Tests use `pytest`. Run with `python -m pytest tests\ -v`. No linter is configur
 - `run_with_dialog(fn, success_msg)` — runs `fn` in a `QThread`, shows the spinner dialog, then a success/error `QMessageBox`. Use this for every blocking operation.
 - `primary_button(label, on_click)` — standard cyan action button.
 - File/folder dialog helpers: `open_file_dialog`, `open_files_dialog`, `folder_dialog`, `save_dialog`.
+- `wrap_with_back_button(widget, back_label, accent, on_back)` — wraps a widget with a "← Back" header bar. Used by `PdfToolsFeature` and `ImageToolsFeature` for their sub-panel navigation.
 
 **`AppCard`** — pass `on_click=None` to render it as a "Coming Soon" greyed-out card with no hover behaviour.
 
@@ -48,10 +49,8 @@ Tests use `pytest`. Run with `python -m pytest tests\ -v`. No linter is configur
 - Image metadata writing is not yet implemented; the Apply button shows "coming soon" for image files.
 
 **Shared utilities** (`features/utils.py`):
-- Settings: `get_setting`/`set_setting`/`last_dir`/`recent_files`/`window_geometry` (QSettings helpers)
 - `parse_page_range` — parses comma-separated page specs (`1-3, 5, 7-9`) into 0-based index lists
 - `parse_page_range_groups` — same but returns separate groups for split feature
-- `safe_filename` / `readable_size` — string formatting helpers
-- `prompt_password` / `open_pdf_reader` / `open_fitz_doc` — encrypted PDF handling
+- `safe_filename` — sanitizes a string for use as a filename
 
 **Legal viewer** (`features/legal_feature.py`) — renders LICENSE and TERMS_OF_USE.md as styled HTML in a `QLabel` via Python-Markdown, wrapped in a `QScrollArea`. `QLabel` is purely static (no navigation engine) — `linkActivated` handles external URLs and cross-tab navigation. A `_LegalViewerBase` class handles the shared logic; `LicenseFeature` and `TermsOfUseFeature` are thin subclasses. Both files must be listed in `MyFileLab.spec` under `datas` for exe bundling.

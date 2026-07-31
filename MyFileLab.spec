@@ -10,7 +10,10 @@ a = Analysis(
         ('TERMS_OF_USE.md', '.'),
         ('icon_autopdf.ico', '.'),
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        'certifi',
+        'yt_dlp.compat._legacy',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

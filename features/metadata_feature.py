@@ -122,7 +122,6 @@ _NS_DC      = "http://purl.org/dc/elements/1.1/"
 _NS_DCTERMS = "http://purl.org/dc/terms/"
 _NS_XSI     = "http://www.w3.org/2001/XMLSchema-instance"
 _NS_APP     = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
-_NS_VT      = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"
 
 _CORE_MAP = [
     ("title",        "dc:title",        _NS_DC),

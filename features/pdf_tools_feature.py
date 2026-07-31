@@ -9,7 +9,8 @@ from PySide6.QtWidgets import (
     QWidget, QMessageBox, QComboBox, QSizePolicy
 )
 
-from .base_feature import BaseFeature, ConversionWorker, ProcessingDialog, AppCard
+from .base_feature import BaseFeature, ConversionWorker, ProcessingDialog, AppCard, wrap_with_back_button
+from .utils import parse_page_range, parse_page_range_groups
 
 _ACCENT   = "#00f6ff"
 _BG_CARD  = "#2a2a2c"
@@ -100,18 +101,6 @@ class _MergePanel(BaseFeature):
         for path in self.open_files_dialog("Select PDF Files", "PDF (*.pdf)"):
             self._drop_zone.add_file(path)
 
-    def _parse_pages(self, raw: str, total: int) -> list:
-        if not raw.strip():
-            return list(range(total))
-        indices = []
-        for part in raw.replace(" ", "").split(","):
-            if "-" in part:
-                a, b = part.split("-", 1)
-                indices.extend(range(int(a) - 1, int(b)))
-            else:
-                indices.append(int(part) - 1)
-        return [i for i in indices if 0 <= i < total]
-
     def _merge(self):
         entries = self._drop_zone.entries()
         if not entries:
@@ -128,7 +117,7 @@ class _MergePanel(BaseFeature):
                     if not os.path.exists(filepath):
                         raise FileNotFoundError(f"File not found: {os.path.basename(filepath)}")
                     reader = PdfReader(filepath)
-                    for i in self._parse_pages(raw_pages, len(reader.pages)):
+                    for i in parse_page_range(raw_pages, len(reader.pages)):
                         writer.add_page(reader.pages[i])
                 if len(writer.pages) == 0:
                     raise ValueError("The merged document contains no pages.")
@@ -327,7 +316,7 @@ class _SplitPanel(BaseFeature):
                 QMessageBox.warning(self, "Warning", "Please enter at least one page range.")
                 return
             try:
-                groups = self._parse_ranges(raw)
+                groups = parse_page_range_groups(raw, self._total_pages)
             except ValueError as e:
                 QMessageBox.critical(self, "Invalid Range", str(e))
                 return
@@ -346,22 +335,6 @@ class _SplitPanel(BaseFeature):
                     with open(os.path.join(out_dir, name), "wb") as f:
                         w.write(f)
             self.run_with_dialog(_run, f"Saved {len(groups)} PDF(s) to:\n{out_dir}")
-
-    def _parse_ranges(self, text: str) -> list:
-        groups = []
-        for token in text.split(","):
-            token = token.strip()
-            if not token:
-                continue
-            if "-" in token:
-                a, b = token.split("-", 1)
-                start, end = int(a), int(b)
-            else:
-                start = end = int(token)
-            if start < 1 or end > self._total_pages or start > end:
-                raise ValueError(f"Range '{token}' is out of bounds (1–{self._total_pages}).")
-            groups.append(list(range(start - 1, end)))
-        return groups
 
 
 class _DeletePanel(BaseFeature):
@@ -418,15 +391,12 @@ class _DeletePanel(BaseFeature):
             QMessageBox.warning(self, "Warning", "Please specify pages to delete.")
             return
         try:
-            pages = []
-            for part in raw.replace(" ", "").split(","):
-                if "-" in part:
-                    a, b = part.split("-", 1)
-                    pages.extend(range(int(a), int(b) + 1))
-                else:
-                    pages.append(int(part))
-        except ValueError:
-            QMessageBox.critical(self, "Error", "Invalid page format. Use: 1, 3, 5-10")
+            reader = PdfReader(src)
+            total = len(reader.pages)
+            pages = parse_page_range(raw, total, zero_based=False)
+            reader.close()
+        except ValueError as e:
+            QMessageBox.critical(self, "Error", str(e))
             return
         out = self.save_dialog("Save As", "Modified_PDF.pdf", "PDF (*.pdf)")
         if not out:
@@ -434,9 +404,8 @@ class _DeletePanel(BaseFeature):
 
         def do_work():
             reader = PdfReader(src)
-            total = len(reader.pages)
-            to_remove = {p - 1 for p in pages if 1 <= p <= total}
-            to_keep = [i for i in range(total) if i not in to_remove]
+            to_remove = {p - 1 for p in pages}
+            to_keep = [i for i in range(len(reader.pages)) if i not in to_remove]
             if not to_keep:
                 raise ValueError("Cannot delete all pages from the document.")
             writer = PdfWriter()
@@ -570,32 +539,8 @@ class PdfToolsFeature(BaseFeature):
         self._stack.addWidget(self._build_launcher())   # index 0
 
         for panel in [_MergePanel(), _SplitPanel(), _DeletePanel(), _CompressPanel()]:
-            self._stack.addWidget(self._wrap(panel))    # index 1-4
-
-    def _wrap(self, widget: QWidget) -> QWidget:
-        wrapper = QWidget()
-        wrapper.setStyleSheet("background:transparent;")
-        layout = QVBoxLayout(wrapper)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        header = QWidget()
-        header.setStyleSheet("background:#1C1C1E; border-bottom:1px solid #2a2a2c;")
-        hl = QHBoxLayout(header)
-        hl.setContentsMargins(24, 10, 24, 10)
-        btn = QPushButton("← Back to PDF Tools")
-        btn.clicked.connect(lambda: self._stack.setCurrentIndex(0))
-        btn.setStyleSheet(
-            f"background:transparent; color:{_ACCENT}; border:none; "
-            f"font-size:13px; font-weight:bold; padding:4px 0;"
-        )
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        hl.addWidget(btn)
-        hl.addStretch()
-
-        layout.addWidget(header)
-        layout.addWidget(widget)
-        return wrapper
+            self._stack.addWidget(wrap_with_back_button(panel, "← Back to PDF Tools", _ACCENT,
+                                     lambda: self._stack.setCurrentIndex(0)))
 
     def _build_launcher(self) -> QWidget:
         scroll = QScrollArea()

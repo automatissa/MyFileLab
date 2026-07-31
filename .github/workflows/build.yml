@@ -59,6 +59,8 @@ jobs:
           --add-data "icon_autopdf.ico;."
           --add-data "LICENSE;."
           --add-data "TERMS_OF_USE.md;."
+          --collect-all yt_dlp
+          --collect-all certifi
           --name=MyFileLab-Windows
           main.py
 
@@ -80,6 +82,8 @@ jobs:
           --add-data "icon_autopdf.ico:."
           --add-data "LICENSE:."
           --add-data "TERMS_OF_USE.md:."
+          --collect-all yt_dlp
+          --collect-all certifi
           --name=MyFileLab
           main.py
 
@@ -107,6 +111,8 @@ jobs:
           --add-data "icon_autopdf.ico:."
           --add-data "LICENSE:."
           --add-data "TERMS_OF_USE.md:."
+          --collect-all yt_dlp
+          --collect-all certifi
           --name=MyFileLab-Linux
           main.py
 

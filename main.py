@@ -1,3 +1,4 @@
+import importlib
 import sys
 import os
 
@@ -11,18 +12,12 @@ def _resource(relative: str) -> str:
     return os.path.join(base, relative)
 
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QStackedWidget, QButtonGroup, QFrame
 )
 from PySide6.QtGui import QIcon
-
-from features.pdf_tools_feature import PdfToolsFeature
-from features.pdf_export_feature import PdfExportFeature
-from features.video_downloader_feature import VideoDownloaderFeature
-from features.image_tools_feature import ImageToolsFeature
-from features.metadata_feature import MetadataEditorFeature
-from features.legal_feature import LicenseFeature, TermsOfUseFeature
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 PRIMARY_BG    = "#0E0E0E"
@@ -30,18 +25,23 @@ SECONDARY_BG  = "#1C1C1E"
 ACCENT_COLOR  = "#00f6ff"
 TEXT_COLOR    = "#ffffff"
 
-# ── Register features here to add new ones ─────────────────────────────────────
-FEATURES = [
-    PdfToolsFeature,
-    PdfExportFeature,
-    ImageToolsFeature,
-    VideoDownloaderFeature,
-    MetadataEditorFeature,
+# ── Feature registry (module_path, class_name, nav_name) ───────────────────────
+def _create_feature(module_path: str, cls_name: str):
+    mod = importlib.import_module(module_path)
+    cls = getattr(mod, cls_name)
+    return cls()
+
+_FEATURE_SPECS = [
+    ("features.pdf_tools_feature", "PdfToolsFeature", "PDF Tools"),
+    ("features.pdf_export_feature", "PdfExportFeature", "Converter"),
+    ("features.image_tools_feature", "ImageToolsFeature", "Images"),
+    ("features.video_downloader_feature", "VideoDownloaderFeature", "Media Downloader"),
+    ("features.metadata_feature", "MetadataEditorFeature", "Metadata Editor"),
 ]
 
-LEGAL_FEATURES = [
-    LicenseFeature,
-    TermsOfUseFeature,
+_LEGAL_SPECS = [
+    ("features.legal_feature", "LicenseFeature", "License"),
+    ("features.legal_feature", "TermsOfUseFeature", "Terms of Use"),
 ]
 
 
@@ -63,6 +63,9 @@ class MyFileLabApp(QWidget):
         if self._nav_group.buttons():
             self._nav_group.buttons()[0].setChecked(True)
 
+        # Defer heavy imports to after the window is painted
+        QTimer.singleShot(10, self._load_deferred_features)
+
     def _setup_ui(self):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -82,15 +85,24 @@ class MyFileLabApp(QWidget):
         self._nav_group = QButtonGroup(self)
         self._stack = QStackedWidget()
 
-        for index, FeatureClass in enumerate(FEATURES):
-            feature = FeatureClass()
+        # ── Create first feature immediately (the visible one) ────────────────
+        mod_path, cls_name, nav_name = _FEATURE_SPECS[0]
+        feature = _create_feature(mod_path, cls_name)
+        btn = QPushButton(nav_name)
+        btn.setCheckable(True)
+        self._nav_group.addButton(btn, 0)
+        side_layout.addWidget(btn)
+        self._stack.addWidget(feature)
 
-            btn = QPushButton(feature.NAV_NAME)
+        # ── Placeholders for remaining functional features ────────────────────
+        for index, (_, _, nav_name) in enumerate(_FEATURE_SPECS[1:], start=1):
+            btn = QPushButton(nav_name)
             btn.setCheckable(True)
             self._nav_group.addButton(btn, index)
             side_layout.addWidget(btn)
 
-            self._stack.addWidget(feature)
+            placeholder = QLabel("")
+            self._stack.addWidget(placeholder)
 
         # ── Separator ─────────────────────────────────────────────────────────
         side_layout.addSpacing(12)
@@ -100,16 +112,17 @@ class MyFileLabApp(QWidget):
         side_layout.addWidget(sep)
         side_layout.addSpacing(4)
 
-        for index, FeatureClass in enumerate(LEGAL_FEATURES, start=len(FEATURES)):
-            feature = FeatureClass()
-
-            btn = QPushButton(feature.NAV_NAME)
+        # ── Legal feature buttons + placeholders ──────────────────────────────
+        self._legal_start_idx = len(_FEATURE_SPECS)
+        for index, (_, _, nav_name) in enumerate(_LEGAL_SPECS, start=self._legal_start_idx):
+            btn = QPushButton(nav_name)
             btn.setCheckable(True)
             btn.setObjectName("LegalNav")
             self._nav_group.addButton(btn, index)
             side_layout.addWidget(btn)
 
-            self._stack.addWidget(feature)
+            placeholder = QLabel("")
+            self._stack.addWidget(placeholder)
 
         side_layout.addStretch()
 
@@ -138,6 +151,21 @@ class MyFileLabApp(QWidget):
         layout.addWidget(self._stack)
 
         self._nav_group.idClicked.connect(self._stack.setCurrentIndex)
+
+    def _load_deferred_features(self):
+        for index, (mod_path, cls_name, _) in enumerate(_FEATURE_SPECS[1:], start=1):
+            feature = _create_feature(mod_path, cls_name)
+            old = self._stack.widget(index)
+            self._stack.removeWidget(old)
+            old.deleteLater()
+            self._stack.insertWidget(index, feature)
+
+        for index, (mod_path, cls_name, _) in enumerate(_LEGAL_SPECS, start=self._legal_start_idx):
+            feature = _create_feature(mod_path, cls_name)
+            old = self._stack.widget(index)
+            self._stack.removeWidget(old)
+            old.deleteLater()
+            self._stack.insertWidget(index, feature)
 
     def _apply_styles(self):
         self.setStyleSheet(f"""

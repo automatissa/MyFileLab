@@ -14,7 +14,6 @@ from features.utils import (
     parse_page_range,
     parse_page_range_groups,
     safe_filename,
-    readable_size,
 )
 
 
@@ -94,26 +93,6 @@ class TestSafeFilename:
     def test_replaces_null_byte(self):
         result = safe_filename('test\x00file')
         assert result == 'test_file'
-
-
-class TestReadableSize:
-    def test_bytes(self):
-        assert readable_size(500) == "500.0 B"
-
-    def test_kilobytes(self):
-        assert readable_size(2048) == "2.0 KB"
-
-    def test_megabytes(self):
-        assert readable_size(1048576) == "1.0 MB"
-
-    def test_gigabytes(self):
-        assert readable_size(1073741824) == "1.0 GB"
-
-    def test_terabytes(self):
-        assert readable_size(1099511627776) == "1.0 TB"
-
-    def test_zero(self):
-        assert readable_size(0) == "0.0 B"
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QWidget, QMessageBox, QComboBox, QSlider, QSizePolicy
 )
 
-from .base_feature import BaseFeature, AppCard
+from .base_feature import BaseFeature, AppCard, wrap_with_back_button
 
 _ACCENT   = "#00f6ff"
 _BG_CARD  = "#2a2a2c"
@@ -389,32 +389,8 @@ class ImageToolsFeature(BaseFeature):
         self._stack.addWidget(self._build_launcher())   # index 0
 
         for panel in [_EnhancePanel(), _ExportPanel()]:
-            self._stack.addWidget(self._wrap(panel))    # index 1-2
-
-    def _wrap(self, widget: QWidget) -> QWidget:
-        wrapper = QWidget()
-        wrapper.setStyleSheet("background:transparent;")
-        layout = QVBoxLayout(wrapper)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        header = QWidget()
-        header.setStyleSheet("background:#1C1C1E; border-bottom:1px solid #2a2a2c;")
-        hl = QHBoxLayout(header)
-        hl.setContentsMargins(24, 10, 24, 10)
-        btn = QPushButton("← Back to Images")
-        btn.clicked.connect(lambda: self._stack.setCurrentIndex(0))
-        btn.setStyleSheet(
-            f"background:transparent; color:{_ACCENT}; border:none; "
-            f"font-size:13px; font-weight:bold; padding:4px 0;"
-        )
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        hl.addWidget(btn)
-        hl.addStretch()
-
-        layout.addWidget(header)
-        layout.addWidget(widget)
-        return wrapper
+            self._stack.addWidget(wrap_with_back_button(panel, "← Back to Images", _ACCENT,
+                                     lambda: self._stack.setCurrentIndex(0)))
 
     def _build_launcher(self) -> QWidget:
         scroll = QScrollArea()

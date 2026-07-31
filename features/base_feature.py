@@ -3,7 +3,7 @@ import os
 from PySide6.QtCore import QThread, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QWidget, QMessageBox, QFileDialog, QPushButton,
-    QDialog, QVBoxLayout, QLabel, QProgressBar, QFrame
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QProgressBar, QFrame
 )
 
 
@@ -260,3 +260,31 @@ class AppCard(QFrame):
         if self._active and self._on_click:
             self._on_click()
         super().mousePressEvent(e)
+
+
+# ── Shared back-button wrapper ─────────────────────────────────────────────────
+
+def wrap_with_back_button(widget: QWidget, back_label: str, accent: str, on_back) -> QWidget:
+    wrapper = QWidget()
+    wrapper.setStyleSheet("background:transparent;")
+    layout = QVBoxLayout(wrapper)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.setSpacing(0)
+
+    header = QWidget()
+    header.setStyleSheet("background:#1C1C1E; border-bottom:1px solid #2a2a2c;")
+    hl = QHBoxLayout(header)
+    hl.setContentsMargins(24, 10, 24, 10)
+    btn = QPushButton(back_label)
+    btn.clicked.connect(on_back)
+    btn.setStyleSheet(
+        f"background:transparent; color:{accent}; border:none; "
+        f"font-size:13px; font-weight:bold; padding:4px 0;"
+    )
+    btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    hl.addWidget(btn)
+    hl.addStretch()
+
+    layout.addWidget(header)
+    layout.addWidget(widget)
+    return wrapper
